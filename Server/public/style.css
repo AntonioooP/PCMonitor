@@ -1,0 +1,56 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #abc2d3;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    
+}
+
+table {
+	border-spacing: 1;
+	border-collapse: collapse;
+	border-radius: 6px;
+	overflow: hidden;
+    color: black;
+    width: 90vw;
+}
+
+thead tr {
+	height: 32px;
+	background: #fafafa;
+	font-size: 12px;
+}
+thead tr th {
+    padding: 8px;
+}
+thead tr {
+    user-select: none;
+}
+
+tbody tr {
+	height: 24px;
+	border-bottom: 1px solid #eaeaea;
+}
+td {
+    background: white;
+	padding: 12px;
+    border: 1px solid #eaeaea;
+}
+button {
+	color: white;
+	padding: 10px;
+	box-sizing: border-box;
+	border-radius: 4px;
+	outline: none;
+	border: none;
+	cursor: pointer;
+	background: #163a83;
+	transition: 0.3s ease-in-out;
+	user-select: none;
+}
+button:hover {
+	background: #0E1C36;
+}
