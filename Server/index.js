@@ -22,24 +22,46 @@ app.post('/command', (req, res) => {
 	}
 })
 
-app.get('/clients', (req, res) => {
-	res.send(Object.keys(clients))
-})
+app.get('/clients', async (req, res) => {
+	const promises = Object.keys(clients).map(
+		(id) =>
+			new Promise((resolve, reject) =>
+				clients[id].send(JSON.stringify({type: 'metrics'}), (error) => {
+					if (error) return reject(error)
 
+					clients[id].once('message', (message) => {
+						try {
+							const metrics = JSON.parse(message).metrics
+							metrics.clientId = id
+							resolve(metrics)
+						} catch (err) {
+							reject(err)
+						}
+					})
+				})
+			)
+	)
+
+	try {
+		const data = await Promise.all(promises)
+		console.log(data)
+		res.send(data)
+	} catch (error) {
+		res.status(500).send(error.message)
+	}
+})
 // WebSocket connection
 wss.on('connection', (ws, req) => {
 	const clientId = req.headers['sec-websocket-key']
 	clients[clientId] = ws
-    console.log('Client connected. Client ID:', clientId)
+	console.log('Client connected. Client ID:', clientId)
 	ws.on('message', (message) => {
 		const data = JSON.parse(message)
 		console.log(`Received from ${clientId}:`, data)
 
 		if (data.type === 'status') {
-			
 		} else if (data.type === 'screenshot') {
-
-        }
+		}
 	})
 
 	ws.on('close', () => delete clients[clientId])
