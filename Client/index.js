@@ -25,24 +25,34 @@ ws.on('message', async (message) => {
 })
 
 async function getMetrics() {
-	const cpuUsage = os.loadavg()[0] 
-	const cpuTemp = await si.cpuTemperature()
-	const gpuUsage = await si.graphics()
-	const mem = await si.mem()
-	const power = 0 // will get later
-	const uptime = os.uptime()
+	try {
+		const [cpuLoad, cpuTemp, gpuInfo, mem, uptime] = await Promise.all([si.currentLoad(), si.cpuTemperature(), si.graphics(), si.mem(), Promise.resolve(os.uptime())])
+		const cpuUsage = cpuLoad.currentLoad.toFixed(2) + '%'
+		const cpuTemperature = cpuTemp.main !== null ? cpuTemp.main + '°C' : 'N/A'
+		console.log(cpuTemp)
+		const gpu = gpuInfo.controllers[ 0 ] || {}
+		const gpuUsage = (gpu.utilizationGpu || 0) + '%'
+		const gpuTemp = (gpu.temperatureGpu || 0) + '°C'
+		const ramUsage = ((mem.active / mem.total) * 100).toFixed(0) + '%'
 
-	return {
-		cpu: {
-			usage: cpuUsage + '%',
-			temp: cpuTemp.main + '°C'
-		},
-		gpu: {
-			usage: gpuUsage.controllers[0].utilizationGpu + '%',
-			temp: gpuUsage.controllers[0].temperatureGpu + '°C'
-		},
-		ramUsage: (mem.active / mem.total * 100).toFixed(0) + '%',
-		powerUsage: power,
-		uptime: (uptime / 3600).toFixed(2) + 'h'
+		const powerUsage = '100w' // Placeholder 
+		const uptimeHours = (uptime / 3600).toFixed(2) + 'h'
+
+		return {
+			cpu: {
+				usage: cpuUsage,
+				temp: cpuTemperature
+			},
+			gpu: {
+				usage: gpuUsage,
+				temp: gpuTemp
+			},
+			ramUsage: ramUsage,
+			powerUsage: powerUsage,
+			uptime: uptimeHours
+		}
+	} catch (error) {
+		console.error('Error fetching system metrics:', error)
+		return null
 	}
 }
