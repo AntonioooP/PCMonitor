@@ -2,6 +2,8 @@ const WebSocket = require('ws')
 const {exec} = require('child_process')
 const si = require('systeminformation')
 const os = require('os')
+const screenshot = require('screenshot-desktop')
+const fs = require('fs')
 
 const ws = new WebSocket('ws://localhost:3000')
 
@@ -17,9 +19,12 @@ ws.on('message', async (message) => {
 			ws.send(JSON.stringify({type: 'result', stdout, stderr}))
 		})
 	} else if (data.type === 'screenshot') {
+		console.log('rec screenshot')
+		await screenshot({ filename: 'ss.jpg' })
+		const buffer = fs.readFileSync('./ss.jpg', { encoding: 'base64' })
+		ws.send(JSON.stringify({ type: 'screenshot', buffer}))
 	} else if (data.type === 'metrics') {
 		const metrics = await getMetrics()
-		console.log(metrics)
 		ws.send(JSON.stringify({type: 'metrics', metrics}))
 	}
 })
@@ -29,7 +34,6 @@ async function getMetrics() {
 		const [cpuLoad, cpuTemp, gpuInfo, mem, uptime] = await Promise.all([si.currentLoad(), si.cpuTemperature(), si.graphics(), si.mem(), Promise.resolve(os.uptime())])
 		const cpuUsage = cpuLoad.currentLoad.toFixed(2) + '%'
 		const cpuTemperature = cpuTemp.main !== null ? cpuTemp.main + '°C' : 'N/A'
-		console.log(cpuTemp)
 		const gpu = gpuInfo.controllers[ 0 ] || {}
 		const gpuUsage = (gpu.utilizationGpu || 0) + '%'
 		const gpuTemp = (gpu.temperatureGpu || 0) + '°C'
