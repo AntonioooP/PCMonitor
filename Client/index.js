@@ -13,19 +13,19 @@ ws.on('open', () => {
 
 ws.on('message', async (message) => {
 	const data = JSON.parse(message)
+	const requestId = data.requestId
 	if (data.type === 'command') {
 		exec(data.command, (error, stdout, stderr) => {
 			if (error) return ws.send(JSON.stringify({type: 'error', error: error.message}))
-			ws.send(JSON.stringify({type: 'result', stdout, stderr}))
+			ws.send(JSON.stringify({type: 'result', stdout, stderr, requestId}))
 		})
 	} else if (data.type === 'screenshot') {
-		console.log('rec screenshot')
 		await screenshot({ filename: 'ss.jpg' })
 		const buffer = fs.readFileSync('./ss.jpg', { encoding: 'base64' })
-		ws.send(JSON.stringify({ type: 'screenshot', buffer}))
+		ws.send(JSON.stringify({ type: 'screenshot', buffer, requestId}))
 	} else if (data.type === 'metrics') {
 		const metrics = await getMetrics()
-		ws.send(JSON.stringify({type: 'metrics', metrics}))
+		ws.send(JSON.stringify({type: 'metrics', metrics, requestId}))
 	}
 })
 
