@@ -13,17 +13,16 @@ let responseStore = {} // Store to hold client responses
 app.use(express.json())
 app.use(express.static('public'))
 
-const requestFromClient = (clientId, type) => {
+const requestFromClient = (clientId, type, data) => {
 	const requestId = uuidv4()
 	return new Promise((resolve, reject) => {
 		const client = clients[clientId]
 		if (!client) return reject('Client not found')
 
-
 		// Store the promise resolvers in the response store
 		responseStore[requestId] = {resolve, reject}
 
-		client.send(JSON.stringify({type, requestId}), (error) => {
+		client.send(JSON.stringify({type, requestId, data}), (error) => {
 			if (error) {
 				delete responseStore[requestId]
 				return reject(error)
@@ -32,13 +31,13 @@ const requestFromClient = (clientId, type) => {
 	})
 }
 
-app.post('/command', (req, res) => {
-	const {clientId, command} = req.body
-	if (clients[clientId]) {
-		clients[clientId].send(JSON.stringify({type: 'command', command}))
-		res.send('Command sent')
-	} else {
-		res.status(404).send('Client not found')
+app.post('/command', async (req, res) => {
+	const { clientId, command } = req.body
+	try {
+		const data = await requestFromClient(clientId, 'command', command)
+		res.send(data)
+	} catch (error) {
+		res.status(500).send(error)
 	}
 })
 
@@ -48,7 +47,6 @@ app.post('/screenshot', async (req, res) => {
 		const data = await requestFromClient(clientId, 'screenshot')
 		res.send(data)
 	} catch (error) {
-		console.log(error)
 		res.status(500).send(error)
 	}
 })
