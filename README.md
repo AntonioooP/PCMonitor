@@ -6,3 +6,8 @@ Features: (WIP)
 - Screenshot
 - System information (CPU, GPU, RAM, Power, etc.)
 
+To run the program:
+- Go into the Server directory and run `node index.js` to start the server on port 3000. This port has a dashboard where the features listed can be used. If no clients are connected, the dashboard will be empty.
+- Go into the Client directory and compile the metrics CPP program by using `g++ -O3 -march=native metrics.cpp -o metrics -lpdh` if the program is not already compiled/isn't working, as I have not had the time to test in multiple systems. 
+- Go into the Client directory and run `node index.js` to start the WS client, which will connect to the server on port 3000. 
+- Refresh the website if necessary to view the connected client(s). 
