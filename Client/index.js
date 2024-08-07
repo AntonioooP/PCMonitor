@@ -16,7 +16,6 @@ ws.on('message', async (message) => {
 	const requestId = data.requestId
 	if (data.type === 'command') {
 		exec(data.data, (error, stdout, stderr) => {
-			if (error) return ws.send(JSON.stringify({type: 'error', error: error.message}))
 			ws.send(JSON.stringify({type: 'result', stdout, stderr, requestId}))
 		})
 	} else if (data.type === 'screenshot') {
