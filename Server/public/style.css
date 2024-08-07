@@ -97,5 +97,47 @@ td > button:hover {
     line-height: 40px; 
 }
 .hidden {
-	display: none;
+	display: none !important;
+}
+.cli {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center; 
+    align-items: center; 
+}
+#cli-container {
+    background-color: #000;
+    color: rgb(204, 204, 204);
+    font-family: 'Courier New', Courier, monospace;
+    width: 80%;
+    height: 80%;
+    max-width: 80%;
+    max-height: 80%;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    overflow: auto;
+}
+
+.input-line {
+    display: flex;
+}
+
+#cli-prefix {
+    margin-right: 10px;
+}
+
+#cli-input {
+    background-color: #000;
+    color: rgb(204, 204, 204);
+    border: none;
+    flex: 1;
+    outline: none;
+}
+#output {
+    white-space: pre-wrap;
 }
