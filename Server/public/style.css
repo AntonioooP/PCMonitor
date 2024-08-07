@@ -6,7 +6,6 @@ body {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    
 }
 
 table {
@@ -38,6 +37,7 @@ td {
     background: white;
 	padding: 12px;
     border: 1px solid #eaeaea;
+    text-align: center;
 }
 td > button {
 	color: white;
