@@ -4,6 +4,11 @@
 #include <pdhmsg.h>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cmath>
 
 #pragma comment(lib, "pdh.lib")
 
@@ -50,9 +55,48 @@ string jsonEscape(const string &str)
     }
     return ss.str();
 }
+double extractLastTwoDigits(string numStr) {
+    size_t decimalPos = numStr.find('.');
+    if (decimalPos == string::npos) return fmod(stod(numStr), 100);
+    
+    // Find the start position for extracting (2 digits before decimal)
+    size_t startPos = (decimalPos > 2) ? (decimalPos - 2) : 0;
 
-int main()
+    std::string extractedStr = numStr.substr(startPos, numStr.length() - startPos);    
+    return std::stod(extractedStr);
+}
+
+double getCpuTemp(const string &logFilePath)
 {
+    ifstream file(logFilePath);
+    string line;
+    string lastLine;
+
+    if (file.is_open())
+    {
+        while (getline(file, line))
+        {
+            if (!line.empty()) lastLine = line;
+        }
+        file.close();
+    }
+    else
+    {
+        cerr << "Unable to open file: " << logFilePath << endl;
+        return 0.0;
+    }
+    return extractLastTwoDigits(lastLine);
+}
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        cerr << "Usage: " << argv[0] << " <path_to_speedfan_log>" << endl;
+        return 1;
+    }
+
+    string logFilePath = argv[1];
+
     // CPU Usage
     PDH_HQUERY cpuQuery;
     PDH_HCOUNTER cpuTotal;
@@ -91,7 +135,7 @@ int main()
 
     // Placeholders for the moment
     double powerUsage = 100.0; 
-    double cpuTemp = 0.0;
+    double cpuTemp = getCpuTemp(logFilePath);
     double gpuTemp = 0.0;
 
     cout << "{";
