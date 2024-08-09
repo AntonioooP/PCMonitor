@@ -1,18 +1,26 @@
-function createTd(text, button, listener) {
+function createTd(text, button, listener, colSpan) {
 	const cell = document.createElement('td')
+	if (colSpan) cell.colSpan = colSpan
 	button ? (cell.innerHTML = `<button>${text}</button>`) : (cell.innerText = text)
 	if (typeof listener === 'function') cell.addEventListener('click', listener)
 	return cell
 }
 
 function populateTable(data) {
+	const table = document.getElementById('clients')
+	const tableBody = table.getElementsByTagName('tbody')[ 0 ]
+	tableBody.innerHTML = ''
+	if (!data.length) {
+		const row = document.createElement('tr')
+		// 12 Column spans to center the text
+		row.appendChild(createTd('No data available. Please connect to a client and click the refresh button.', false, null, 12))
+		return tableBody.appendChild(row)
+	}
 	data.forEach((item) => {
-		const table = document.getElementById('clients')
-		const tableBody = table.getElementsByTagName('tbody')[0]
 		const row = document.createElement('tr')
 		row.appendChild(createTd(item.clientId))
 
-		const actions = ['Run Command', 'Upload file', 'Execute file', 'Open file', 'View Screen']
+		const actions = ['Run Command', 'Upload file', 'Open file', 'View Screen']
 		actions.forEach((action) => {
 			if (action == 'View Screen')
 				return row.appendChild(
@@ -47,6 +55,11 @@ fetch('/clients')
 
 document.getElementById('close').addEventListener('click', () => document.getElementById('ss-container').classList.add('hidden'))
 document.getElementById('close-cli').addEventListener('click', () => document.getElementById('cli').classList.add('hidden'))
+document.getElementById('refresh').addEventListener('click', () =>
+	fetch('/clients')
+		.then((res) => res.json())
+		.then((res) => populateTable(res))
+)
 
 
 function showCLI(clientId) {
