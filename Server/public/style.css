@@ -39,7 +39,7 @@ td {
     border: 1px solid #eaeaea;
     text-align: center;
 }
-td > button {
+td > button, .refresh {
 	color: white;
 	padding: 10px;
 	box-sizing: border-box;
@@ -51,7 +51,7 @@ td > button {
 	transition: 0.3s ease-in-out;
 	user-select: none;
 }
-td > button:hover {
+td > button:hover, .refresh:hover {
 	background: #0E1C36;
 }
 .ss-container {
@@ -140,4 +140,9 @@ td > button:hover {
 }
 #output {
     white-space: pre-wrap;
+}
+
+.refresh {
+    margin-top: 20px;
+    font-size: 18px;
 }
