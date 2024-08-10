@@ -146,3 +146,15 @@ td > button:hover, .refresh:hover {
     margin-top: 20px;
     font-size: 18px;
 }
+
+span {
+    color: white;
+    background: #2c8064;
+    padding: 10px;
+    border-radius: 4px;
+    user-select: none;
+    margin: 20px;
+}
+.error {
+    background: #812727;
+}
