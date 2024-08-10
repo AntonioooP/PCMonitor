@@ -29,7 +29,13 @@ function connect() {
 			await screenshot({ filename: 'ss.jpg' })
 			const buffer = fs.readFileSync('./ss.jpg', { encoding: 'base64' })
 			ws.send(JSON.stringify({ type: 'screenshot', buffer, requestId}))
-		} else if (data.type === 'metrics') ws.send(JSON.stringify({type: 'metrics', metrics, requestId}))
+		} else if (data.type === 'metrics') ws.send(JSON.stringify({ type: 'metrics', metrics, requestId }))
+		else if (data.type === 'upload') {
+			const file = data.data, buffer = Buffer.from(file.buffer, 'base64')
+			const filePath = path.join(__dirname, 'uploads', file.originalname)
+			fs.writeFileSync(filePath, buffer)
+			ws.send(JSON.stringify({ type: 'upload', filePath, requestId }))
+		}
 	})
 }
 
