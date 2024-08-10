@@ -2,10 +2,12 @@ const express = require('express')
 const WebSocket = require('ws')
 const http = require('http')
 const {v4: uuidv4} = require('uuid')
+const multer = require('multer')
 
 const app = express()
 const server = http.createServer(app)
 const wss = new WebSocket.Server({server})
+const upload = multer()
 
 let clients = {}
 let responseStore = {} // Store to hold client responses
@@ -30,6 +32,18 @@ const requestFromClient = (clientId, type, data) => {
 		})
 	})
 }
+
+app.post('/upload', upload.single('file'), async (req, res) => {
+	const { clientId } = req.body,
+		file = req.file
+	console.log(clientId, file)
+	try {
+		const data = await requestFromClient(clientId, 'upload', file)
+		res.send(data)
+	} catch (error) {
+		res.status(500).send(error)
+	}
+})
 
 app.post('/command', async (req, res) => {
 	const { clientId, command } = req.body
